@@ -1,17 +1,14 @@
 import 'package:flutter/material.dart';
 import '../core/theme/mangrove_theme.dart';
 
-/// Reusable SensorCard widget for displaying individual sensor data
-/// Used on Device Detail page to show detailed sensor information
-
 class SensorCard extends StatelessWidget {
   final String title;
   final String value;
   final String unit;
   final IconData icon;
   final Color? iconColor;
-  final double? progress; // Optional progress value between 0 and 1
-  final double? maxValue; // Optional max value for progress calculation
+  final double? progress;
+  final double? maxValue;
   
   const SensorCard({
     super.key,
@@ -34,7 +31,6 @@ class SensorCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header with icon and title
             Row(
               children: [
                 Container(
@@ -60,7 +56,6 @@ class SensorCard extends StatelessWidget {
             
             const SizedBox(height: 20),
             
-            // Value display
             Row(
               crossAxisAlignment: CrossAxisAlignment.baseline,
               textBaseline: TextBaseline.alphabetic,
@@ -82,7 +77,6 @@ class SensorCard extends StatelessWidget {
               ],
             ),
             
-            // Optional progress indicator
             if (progress != null || maxValue != null) ...[
               const SizedBox(height: 16),
               _buildProgressIndicator(context, effectiveIconColor),
@@ -94,7 +88,6 @@ class SensorCard extends StatelessWidget {
   }
   
   Widget _buildProgressIndicator(BuildContext context, Color color) {
-    // Calculate progress - either use provided progress or calculate from maxValue
     final double progressValue;
     if (progress != null) {
       progressValue = progress!.clamp(0.0, 1.0);
@@ -128,7 +121,6 @@ class SensorCard extends StatelessWidget {
   }
 }
 
-/// Section header widget for device detail page
 class SensorSectionHeader extends StatelessWidget {
   final String title;
   final IconData icon;

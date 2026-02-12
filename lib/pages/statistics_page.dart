@@ -225,8 +225,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
             ),
             
             const SizedBox(height: 20),
-            
-            // Chart
+                    
             SizedBox(
               height: 180,
               child: LineChart(
@@ -263,11 +262,10 @@ class _StatisticsPageState extends State<StatisticsPage> {
                       sideTitles: SideTitles(
                         showTitles: true,
                         reservedSize: 22,
-                        interval: 5, // Show label every 5 index
+                        interval: 5,
                         getTitlesWidget: (value, meta) {
                           final index = value.toInt();
                           if (index >= 0 && index < data.length) {
-                             // Only show time for some points to avoid clutter
                              if (index % 5 == 0 || index == data.length - 1) {
                                return Padding(
                                   padding: const EdgeInsets.only(top: 8),
@@ -294,7 +292,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
                   ),
                   borderData: FlBorderData(show: false),
                   minX: 0,
-                  maxX: (data.length - 1).toDouble(), // Dynamic X axis
+                  maxX: (data.length - 1).toDouble(),
                   minY: displayMin,
                   maxY: displayMax,
                   lineBarsData: [
@@ -310,7 +308,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
                       color: color,
                       barWidth: 3,
                       isStrokeCapRound: true,
-                      dotData: FlDotData(show: false), // Hide dots for cleaner look
+                      dotData: FlDotData(show: false),
                       belowBarData: BarAreaData(
                         show: true,
                         color: color.withValues(alpha: 0.1),
@@ -358,7 +356,6 @@ class _StatisticsPageState extends State<StatisticsPage> {
   }
   
   String _formatTimeLabel(DateTime date) {
-    // Format: HH:mm:ss
     return '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}:${date.second.toString().padLeft(2, '0')}';
   }
 
@@ -366,4 +363,3 @@ class _StatisticsPageState extends State<StatisticsPage> {
     return '${_formatTimeLabel(date)}';
   }
 }
-

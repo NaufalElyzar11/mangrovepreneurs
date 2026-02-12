@@ -2,10 +2,6 @@ import 'package:flutter/material.dart';
 import '../widgets/team_member_card.dart';
 import '../core/theme/mangrove_theme.dart';
 
-/// Profile Page - Project description and team information
-/// Two sections: Project Description and Team Members
-/// Displays static content about Kalulut bees and mangrove ecosystem
-
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
 
@@ -18,17 +14,14 @@ class ProfilePage extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.symmetric(vertical: 16),
         children: [
-          // Logo Section
           _buildLogoSection(context),
           
           const SizedBox(height: 16),
           
-          // Project Description Section
           _buildProjectDescriptionSection(context),
           
           const SizedBox(height: 24),
           
-          // Team Mangrovepreneurs (with logo)
           const TeamSectionHeader(
             title: 'Mangrovepreneurs Team',
             icon: Icons.eco_outlined,
@@ -56,7 +49,6 @@ class ProfilePage extends StatelessWidget {
           
           const SizedBox(height: 16),
           
-          // Team NRN Project (no logo - use icon only)
           const TeamSectionHeader(
             title: 'NRN Project Team',
             icon: Icons.memory_outlined,
@@ -86,7 +78,6 @@ class ProfilePage extends StatelessWidget {
           
           const SizedBox(height: 24),
           
-          // App version info
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Text(
@@ -104,12 +95,10 @@ class ProfilePage extends StatelessWidget {
     );
   }
   
-  /// Logo section at top of profile
   Widget _buildLogoSection(BuildContext context) {
     return Center(
       child: Column(
         children: [
-          // Logo
           Container(
             width: 120,
             height: 120,
@@ -185,7 +174,6 @@ class ProfilePage extends StatelessWidget {
               
               const SizedBox(height: 20),
               
-              // Kalulut description
               _buildDescriptionItem(
                 context,
                 title: 'Kalulut (Stingless Bee)',
@@ -199,7 +187,6 @@ class ProfilePage extends StatelessWidget {
               
               const Divider(height: 32),
               
-              // Mangrove ecosystem description
               _buildDescriptionItem(
                 context,
                 title: 'Mangrove Ecosystem',
@@ -213,7 +200,6 @@ class ProfilePage extends StatelessWidget {
               
               const Divider(height: 32),
               
-              // Monitoring purpose
               _buildDescriptionItem(
                 context,
                 title: 'Monitoring Purpose',

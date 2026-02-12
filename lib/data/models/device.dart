@@ -1,14 +1,11 @@
-/// Device model representing an IoT monitoring device
-/// Each device has sensors for temperature, humidity, and weight
-/// This model is structured for future REST API integration
 library;
 
 class Device {
   final String id;
   final String name;
-  final double temperature; // in Celsius
-  final double humidity; // in percentage
-  final double weight; // in kilograms
+  final double temperature;
+  final double humidity;
+  final double weight;
   final DateTime lastUpdated;
   
   const Device({
@@ -20,10 +17,7 @@ class Device {
     required this.lastUpdated,
   });
   
-  /// Factory constructor for creating a Device from JSON
-  /// Ready for future API integration
   factory Device.fromJson(Map<String, dynamic> json) {
-    // Helper to safely parse double
     double parseDouble(dynamic value) {
       if (value == null) return 0.0;
       if (value is num) return value.toDouble();
@@ -31,7 +25,6 @@ class Device {
       return 0.0;
     }
 
-    // Helper to safely parse DateTime
     DateTime parseDate(dynamic value) {
       if (value == null) return DateTime.now();
       if (value is String) {
@@ -57,7 +50,6 @@ class Device {
     );
   }
   
-  /// Convert device to JSON for API requests
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -69,7 +61,6 @@ class Device {
     };
   }
   
-  /// Create a copy of device with updated values
   Device copyWith({
     String? id,
     String? name,
@@ -89,7 +80,6 @@ class Device {
   }
 }
 
-/// Historical sensor data point for charts
 class SensorDataPoint {
   final DateTime timestamp;
   final double value;
@@ -114,7 +104,6 @@ class SensorDataPoint {
   }
 }
 
-/// Historical data for a device containing multiple sensor readings
 class DeviceHistory {
   final String deviceId;
   final List<SensorDataPoint> temperatureHistory;

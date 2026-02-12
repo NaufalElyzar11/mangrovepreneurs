@@ -15,8 +15,6 @@ void main() async {
   runApp(const MangroveApp());
 }
 
-/// Main application widget
-/// Entry point for the Kalulut Hive Monitor app
 class MangroveApp extends StatelessWidget {
   const MangroveApp({super.key});
 
@@ -31,8 +29,6 @@ class MangroveApp extends StatelessWidget {
   }
 }
 
-/// Main screen with stateful BottomNavigationBar
-/// Uses IndexedStack for persistent navigation state
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
 
@@ -43,7 +39,6 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
   
-  // Pages - using list to maintain state across tab switches
   final List<Widget> _pages = const [
     DashboardPage(),
     StatisticsPage(),
@@ -54,7 +49,6 @@ class _MainScreenState extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // IndexedStack preserves state of all pages
       body: IndexedStack(
         index: _currentIndex,
         children: _pages,

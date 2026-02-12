@@ -1,17 +1,10 @@
 import '../models/device.dart';
 
-/// Mock data service for IoT devices
-/// Provides dummy data for development and testing
-/// Structure is prepared for easy replacement with real REST API
-
 class MockDataService {
-  // Singleton pattern for easy access
   static final MockDataService _instance = MockDataService._internal();
   factory MockDataService() => _instance;
   MockDataService._internal();
   
-  /// Get all monitored devices
-  /// In future: Replace with HTTP GET request to IoT API
   List<Device> getDevices() {
     return [
       Device(
@@ -41,8 +34,6 @@ class MockDataService {
     ];
   }
   
-  /// Get a single device by ID
-  /// In future: Replace with HTTP GET request to IoT API
   Device? getDeviceById(String id) {
     final devices = getDevices();
     try {
@@ -52,19 +43,15 @@ class MockDataService {
     }
   }
   
-  /// Get historical data for statistics charts
-  /// In future: Replace with HTTP GET request to IoT API
   DeviceHistory getDeviceHistory(String deviceId) {
     final now = DateTime.now();
     
-    // Generate mock historical data for the past 7 days
     List<SensorDataPoint> generateHistory(
       double baseValue,
       double variance,
     ) {
       return List.generate(7, (index) {
         final dayOffset = 6 - index;
-        // Add some variation to make it look realistic
         final variation = (index % 3 - 1) * variance;
         return SensorDataPoint(
           timestamp: now.subtract(Duration(days: dayOffset)),
@@ -73,7 +60,6 @@ class MockDataService {
       });
     }
     
-    // Different base values for each device
     double tempBase, humBase, weightBase;
     switch (deviceId) {
       case 'device_001':
@@ -101,11 +87,9 @@ class MockDataService {
     );
   }
   
-  /// Get aggregated history across all devices for statistics page
   DeviceHistory getAggregatedHistory() {
     final now = DateTime.now();
     
-    // Generate averaged data points
     return DeviceHistory(
       deviceId: 'all',
       temperatureHistory: List.generate(7, (index) {

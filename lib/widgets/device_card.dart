@@ -2,10 +2,6 @@ import 'package:flutter/material.dart';
 import '../data/models/device.dart';
 import '../core/theme/mangrove_theme.dart';
 
-/// Reusable DeviceCard widget for displaying IoT device summary
-/// Used on Dashboard page to show device overview
-/// Tappable to navigate to device detail page
-
 class DeviceCard extends StatelessWidget {
   final Device device;
   final VoidCallback? onTap;
@@ -27,7 +23,6 @@ class DeviceCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Device name and status indicator
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -72,7 +67,6 @@ class DeviceCard extends StatelessWidget {
               const Divider(height: 1),
               const SizedBox(height: 16),
               
-              // Sensor readings row
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [

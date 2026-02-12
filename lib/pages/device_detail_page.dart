@@ -4,10 +4,6 @@ import '../data/models/device.dart';
 import '../data/models/calibration_settings.dart';
 import '../core/theme/mangrove_theme.dart';
 
-/// Device Detail Page - Shows detailed sensor information for a device
-/// Modern design with circular weight gauge, 2-column metrics grid,
-/// and device status section. Shows color indicators based on calibration thresholds.
-
 class DeviceDetailPage extends StatelessWidget {
   final Device device;
   
@@ -27,25 +23,19 @@ class DeviceDetailPage extends StatelessWidget {
       body: SafeArea(
         child: Column(
           children: [
-            // Custom App Bar
             _buildAppBar(context),
             
-            // Scrollable Content
             Expanded(
               child: SingleChildScrollView(
                 physics: const BouncingScrollPhysics(),
                 child: Column(
                   children: [
-                    // Meta Information
                     _buildMetaInfo(context),
                     
-                    // Primary Weight Card with Gauge
                     _buildWeightCard(context, weightPercentage, calibration.harvestWeight, isReadyToHarvest),
                     
-                    // Secondary Metrics Grid
                     _buildEnvironmentGrid(context, calibration),
                     
-                    // Device Status
                     _buildDeviceStatus(context),
                     
                     const SizedBox(height: 24),
@@ -59,7 +49,6 @@ class DeviceDetailPage extends StatelessWidget {
     );
   }
   
-  /// Custom app bar with back button, title, and settings
   Widget _buildAppBar(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
@@ -75,14 +64,12 @@ class DeviceDetailPage extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          // Back button
           IconButton(
             onPressed: () => Navigator.pop(context),
             icon: const Icon(Icons.arrow_back),
             color: MangroveTheme.textPrimary,
           ),
           
-          // Title and status
           Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -99,7 +86,6 @@ class DeviceDetailPage extends StatelessWidget {
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Animated pulse indicator
                   Container(
                     width: 8,
                     height: 8,
@@ -129,10 +115,8 @@ class DeviceDetailPage extends StatelessWidget {
             ],
           ),
           
-          // Settings button
           IconButton(
             onPressed: () {
-              // Navigate to settings tab
             },
             icon: const Icon(Icons.settings_outlined),
             color: MangroveTheme.textPrimary,
@@ -142,7 +126,6 @@ class DeviceDetailPage extends StatelessWidget {
     );
   }
   
-  /// Meta information section
   Widget _buildMetaInfo(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(24, 20, 24, 8),
@@ -169,9 +152,7 @@ class DeviceDetailPage extends StatelessWidget {
     );
   }
   
-  /// Primary weight card with circular gauge and harvest indicator
   Widget _buildWeightCard(BuildContext context, double percentage, double target, bool isReadyToHarvest) {
-    // Weight trend display (mock data: positive change)
     const String weightChange = '+0.1kg';
     
     return Padding(
@@ -197,7 +178,6 @@ class DeviceDetailPage extends StatelessWidget {
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            // Header row
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -231,7 +211,6 @@ class DeviceDetailPage extends StatelessWidget {
                     ),
                   ],
                 ),
-                // Trend indicator
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                   decoration: BoxDecoration(
@@ -263,7 +242,6 @@ class DeviceDetailPage extends StatelessWidget {
             
             const SizedBox(height: 24),
             
-            // Circular Gauge
             SizedBox(
               width: 180,
               height: 180,
@@ -304,7 +282,6 @@ class DeviceDetailPage extends StatelessWidget {
             
             const SizedBox(height: 16),
             
-            // Harvest ready indicator
             if (isReadyToHarvest)
               Container(
                 width: double.infinity,
@@ -356,7 +333,6 @@ class DeviceDetailPage extends StatelessWidget {
             
             const SizedBox(height: 16),
             
-            // Footer stats
             Container(
               padding: const EdgeInsets.only(top: 16),
               decoration: BoxDecoration(
@@ -424,7 +400,6 @@ class DeviceDetailPage extends StatelessWidget {
     );
   }
   
-  /// Environment grid with temperature and humidity - with threshold indicators
   Widget _buildEnvironmentGrid(BuildContext context, CalibrationSettings calibration) {
     final tempStatus = calibration.getTemperatureStatus(device.temperature);
     final humStatus = calibration.getHumidityStatus(device.humidity);
@@ -433,7 +408,6 @@ class DeviceDetailPage extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
         children: [
-          // Temperature Card
           Expanded(
             child: _buildMetricCard(
               icon: Icons.thermostat_outlined,
@@ -448,7 +422,6 @@ class DeviceDetailPage extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 12),
-          // Humidity Card
           Expanded(
             child: _buildMetricCard(
               icon: Icons.water_drop_outlined,
@@ -467,7 +440,6 @@ class DeviceDetailPage extends StatelessWidget {
     );
   }
   
-  // Temperature status colors
   Color _getTempIconBgColor(String status) {
     switch (status) {
       case 'high': return Colors.red.shade50;
@@ -492,7 +464,6 @@ class DeviceDetailPage extends StatelessWidget {
     }
   }
   
-  // Humidity status colors
   Color _getHumIconBgColor(String status) {
     switch (status) {
       case 'high': return Colors.blue.shade50;
@@ -517,7 +488,6 @@ class DeviceDetailPage extends StatelessWidget {
     }
   }
   
-  /// Individual metric card for the grid with status indicator
   Widget _buildMetricCard({
     required IconData icon,
     required Color iconBgColor,
@@ -555,7 +525,6 @@ class DeviceDetailPage extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          // Top row with icon and status
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -587,7 +556,6 @@ class DeviceDetailPage extends StatelessWidget {
               ),
             ],
           ),
-          // Middle - value
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -624,7 +592,6 @@ class DeviceDetailPage extends StatelessWidget {
               ),
             ],
           ),
-          // Bottom - threshold range
           Text(
             'Range: $thresholdInfo',
             style: TextStyle(
@@ -637,7 +604,6 @@ class DeviceDetailPage extends StatelessWidget {
     );
   }
   
-  /// Device status section
   Widget _buildDeviceStatus(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(16),
@@ -667,7 +633,6 @@ class DeviceDetailPage extends StatelessWidget {
             ),
             Row(
               children: [
-                // Battery
                 Expanded(
                   child: _buildStatusItem(
                     icon: Icons.battery_5_bar,
@@ -677,7 +642,6 @@ class DeviceDetailPage extends StatelessWidget {
                     value: '85%',
                   ),
                 ),
-                // Signal
                 Expanded(
                   child: _buildStatusItem(
                     icon: Icons.signal_cellular_alt,
@@ -695,7 +659,6 @@ class DeviceDetailPage extends StatelessWidget {
     );
   }
   
-  /// Individual status item
   Widget _buildStatusItem({
     required IconData icon,
     required Color iconBgColor,
@@ -754,7 +717,6 @@ class DeviceDetailPage extends StatelessWidget {
   }
 }
 
-/// Custom painter for circular gauge
 class _CircularGaugePainter extends CustomPainter {
   final double percentage;
   final Color progressColor;
@@ -772,7 +734,6 @@ class _CircularGaugePainter extends CustomPainter {
     final radius = math.min(size.width, size.height) / 2 - 10;
     const strokeWidth = 12.0;
     
-    // Background circle
     final bgPaint = Paint()
       ..color = backgroundColor
       ..style = PaintingStyle.stroke
@@ -781,14 +742,12 @@ class _CircularGaugePainter extends CustomPainter {
     
     canvas.drawCircle(center, radius, bgPaint);
     
-    // Progress arc
     final progressPaint = Paint()
       ..color = progressColor
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth
       ..strokeCap = StrokeCap.round;
     
-    // Add glow effect
     final glowPaint = Paint()
       ..color = progressColor.withValues(alpha: 0.3)
       ..style = PaintingStyle.stroke
@@ -797,12 +756,10 @@ class _CircularGaugePainter extends CustomPainter {
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
     
     final rect = Rect.fromCircle(center: center, radius: radius);
-    const startAngle = -math.pi / 2; // Start from top
+    const startAngle = -math.pi / 2;
     final sweepAngle = 2 * math.pi * percentage;
     
-    // Draw glow
     canvas.drawArc(rect, startAngle, sweepAngle, false, glowPaint);
-    // Draw progress
     canvas.drawArc(rect, startAngle, sweepAngle, false, progressPaint);
   }
   

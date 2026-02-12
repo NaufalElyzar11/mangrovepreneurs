@@ -2,9 +2,6 @@ import 'package:flutter/material.dart';
 import '../core/theme/mangrove_theme.dart';
 import '../data/models/calibration_settings.dart';
 
-/// Settings Page - Sensor threshold calibration
-/// Form-based UI for setting min/max thresholds and harvest weight
-
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
 
@@ -16,15 +13,12 @@ class _SettingsPageState extends State<SettingsPage> {
   final _formKey = GlobalKey<FormState>();
   final _calibrationService = CalibrationService();
   
-  // Temperature controllers
   late TextEditingController _tempMinController;
   late TextEditingController _tempMaxController;
   
-  // Humidity controllers
   late TextEditingController _humidityMinController;
   late TextEditingController _humidityMaxController;
   
-  // Harvest weight controller
   late TextEditingController _harvestWeightController;
   
   @override
@@ -59,7 +53,6 @@ class _SettingsPageState extends State<SettingsPage> {
         child: ListView(
           padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
           children: [
-            // Header
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
               child: Text(
@@ -77,7 +70,6 @@ class _SettingsPageState extends State<SettingsPage> {
             
             const SizedBox(height: 24),
             
-            // Temperature Thresholds
             _buildThresholdCard(
               context,
               title: 'Temperature Limits',
@@ -127,7 +119,6 @@ class _SettingsPageState extends State<SettingsPage> {
             
             const SizedBox(height: 16),
             
-            // Humidity Thresholds
             _buildThresholdCard(
               context,
               title: 'Humidity Limits',
@@ -177,7 +168,6 @@ class _SettingsPageState extends State<SettingsPage> {
             
             const SizedBox(height: 16),
             
-            // Harvest Weight
             _buildThresholdCard(
               context,
               title: 'Harvest Weight Target',
@@ -230,7 +220,6 @@ class _SettingsPageState extends State<SettingsPage> {
             
             const SizedBox(height: 32),
             
-            // Save button
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 4),
               child: ElevatedButton.icon(
@@ -245,7 +234,6 @@ class _SettingsPageState extends State<SettingsPage> {
             
             const SizedBox(height: 16),
             
-            // Reset button
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 4),
               child: OutlinedButton.icon(
@@ -362,7 +350,6 @@ class _SettingsPageState extends State<SettingsPage> {
   
   void _saveSettings() {
     if (_formKey.currentState!.validate()) {
-      // Validate min < max for ranges
       final tempMin = double.parse(_tempMinController.text);
       final tempMax = double.parse(_tempMaxController.text);
       final humMin = double.parse(_humidityMinController.text);

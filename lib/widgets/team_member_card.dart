@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import '../core/theme/mangrove_theme.dart';
 
-/// TeamMemberCard widget for displaying team member information
-/// Used on Profile page to show team members with avatar, name, and role
-
 class TeamMemberCard extends StatelessWidget {
   final String name;
   final String role;
@@ -30,7 +27,6 @@ class TeamMemberCard extends StatelessWidget {
         padding: const EdgeInsets.all(14),
         child: Row(
           children: [
-            // Avatar - either image or icon
             if (imagePath != null)
               Container(
                 width: 52,
@@ -77,7 +73,6 @@ class TeamMemberCard extends StatelessWidget {
               ),
             const SizedBox(width: 14),
             
-            // Name and role
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -105,7 +100,6 @@ class TeamMemberCard extends StatelessWidget {
   }
 }
 
-/// Team section header widget with optional image support
 class TeamSectionHeader extends StatelessWidget {
   final String title;
   final IconData icon;
@@ -124,7 +118,6 @@ class TeamSectionHeader extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(16, 20, 16, 10),
       child: Row(
         children: [
-          // Icon or Image
           if (imagePath != null)
             Container(
               width: 36,

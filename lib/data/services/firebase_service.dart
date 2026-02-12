@@ -2,41 +2,34 @@ import 'package:firebase_database/firebase_database.dart';
 import '../models/device.dart';
 
 class FirebaseService {
-  // Database references
   final DatabaseReference _devicesRef = FirebaseDatabase.instance.ref().child('devices');
   
-  /// Stream of all devices for realtime updates
   Stream<List<Device>> getDevicesStream() {
     return _devicesRef.onValue.map((event) {
       final data = event.snapshot.value;
       if (data == null) return [];
       
       try {
-        // Handle Map structure from Firebase
         final Map<dynamic, dynamic> map = data as Map<dynamic, dynamic>;
         final List<Device> devices = [];
         
         map.forEach((key, value) {
-          // Convert dynamic map to String, dynamic for fromJson
           final deviceMap = Map<String, dynamic>.from(value as Map);
           devices.add(Device.fromJson(deviceMap));
         });
         
         return devices;
       } catch (e) {
-        // Fallback or error logging
         print('Error parsing devices: $e');
         return [];
       }
     });
   }
   
-  /// Add or update a device
   Future<void> saveDevice(Device device) async {
     await _devicesRef.child(device.id).set(device.toJson());
   }
   
-  /// Create dummy data for testing
   Future<void> seedInitialData() async {
     final now = DateTime.now();
     
