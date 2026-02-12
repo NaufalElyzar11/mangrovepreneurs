@@ -23,13 +23,37 @@ class Device {
   /// Factory constructor for creating a Device from JSON
   /// Ready for future API integration
   factory Device.fromJson(Map<String, dynamic> json) {
+    // Helper to safely parse double
+    double parseDouble(dynamic value) {
+      if (value == null) return 0.0;
+      if (value is num) return value.toDouble();
+      if (value is String) return double.tryParse(value) ?? 0.0;
+      return 0.0;
+    }
+
+    // Helper to safely parse DateTime
+    DateTime parseDate(dynamic value) {
+      if (value == null) return DateTime.now();
+      if (value is String) {
+        try {
+          return DateTime.parse(value);
+        } catch (_) {
+          return DateTime.now();
+        }
+      }
+      if (value is int) {
+        return DateTime.fromMillisecondsSinceEpoch(value);
+      }
+      return DateTime.now();
+    }
+
     return Device(
-      id: json['id'] as String,
-      name: json['name'] as String,
-      temperature: (json['temperature'] as num).toDouble(),
-      humidity: (json['humidity'] as num).toDouble(),
-      weight: (json['weight'] as num).toDouble(),
-      lastUpdated: DateTime.parse(json['lastUpdated'] as String),
+      id: json['id']?.toString() ?? 'unknown_id',
+      name: json['name']?.toString() ?? 'Unknown Device',
+      temperature: parseDouble(json['temperature']),
+      humidity: parseDouble(json['humidity']),
+      weight: parseDouble(json['weight']),
+      lastUpdated: parseDate(json['lastUpdated']),
     );
   }
   

@@ -1,66 +1,136 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
-import '../data/services/mock_data_service.dart';
+import '../data/services/firebase_service.dart';
 import '../data/models/device.dart';
 import '../core/theme/mangrove_theme.dart';
 
-/// Statistics Page - Historical data charts
-/// Shows line charts for temperature, humidity, and weight over time
-/// Uses fl_chart for simple, clean visualizations
-
-class StatisticsPage extends StatelessWidget {
+class StatisticsPage extends StatefulWidget {
   const StatisticsPage({super.key});
 
   @override
+  State<StatisticsPage> createState() => _StatisticsPageState();
+}
+
+class _StatisticsPageState extends State<StatisticsPage> {
+  final List<SensorDataPoint> _tempHistory = [];
+  final List<SensorDataPoint> _humHistory = [];
+  final List<SensorDataPoint> _weightHistory = [];
+  
+  StreamSubscription<List<Device>>? _subscription;
+  final FirebaseService _firebaseService = FirebaseService();
+
+  @override
+  void initState() {
+    super.initState();
+    _startListening();
+  }
+
+  void _startListening() {
+    _subscription = _firebaseService.getDevicesStream().listen((devices) {
+      if (devices.isNotEmpty && mounted) {
+        final device = devices.first;
+        final now = DateTime.now();
+
+        setState(() {
+          _tempHistory.add(SensorDataPoint(timestamp: now, value: device.temperature));
+          _humHistory.add(SensorDataPoint(timestamp: now, value: device.humidity));
+          _weightHistory.add(SensorDataPoint(timestamp: now, value: device.weight));
+          if (_tempHistory.length > 30) _tempHistory.removeAt(0);
+          if (_humHistory.length > 30) _humHistory.removeAt(0);
+          if (_weightHistory.length > 30) _weightHistory.removeAt(0);
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _subscription?.cancel();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final mockService = MockDataService();
-    final history = mockService.getAggregatedHistory();
+    if (_tempHistory.isEmpty) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Live Monitor')),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const CircularProgressIndicator(),
+              const SizedBox(height: 16),
+              Text(
+                'Waiting for incoming data...',
+                style: Theme.of(context).textTheme.bodyLarge,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Ensure Arduino is ON and connected to WiFi',
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ],
+          ),
+        ),
+      );
+    }
     
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Statistics'),
+        title: const Text('Live Monitor'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.delete_outline),
+            tooltip: 'Clear History',
+            onPressed: () {
+              setState(() {
+                _tempHistory.clear();
+                _humHistory.clear();
+                _weightHistory.clear();
+              });
+            },
+          ),
+        ],
       ),
       body: ListView(
         padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
         children: [
-          // Temperature chart
           _buildChartCard(
             context,
             title: 'Temperature',
-            subtitle: 'Average across all hives',
+            subtitle: 'Live Sensor Data',
             unit: '°C',
-            data: history.temperatureHistory,
+            data: _tempHistory,
             color: MangroveTheme.warning,
-            minY: 28,
-            maxY: 38,
+            minY: 20,
+            maxY: 45,
           ),
           
           const SizedBox(height: 16),
           
-          // Humidity chart
           _buildChartCard(
             context,
             title: 'Humidity',
-            subtitle: 'Average across all hives',
+            subtitle: 'Live Sensor Data',
             unit: '%',
-            data: history.humidityHistory,
+            data: _humHistory,
             color: MangroveTheme.primaryGreen,
-            minY: 60,
-            maxY: 90,
+            minY: 0,
+            maxY: 100,
           ),
           
           const SizedBox(height: 16),
           
-          // Weight chart
           _buildChartCard(
             context,
             title: 'Weight',
-            subtitle: 'Total hive weight trend',
+            subtitle: 'Live Load Cell Data',
             unit: 'kg',
-            data: history.weightHistory,
+            data: _weightHistory,
             color: MangroveTheme.mutedBrown,
-            minY: 10,
-            maxY: 18,
+            minY: 0, 
+            maxY: 10, 
           ),
           
           const SizedBox(height: 20),
@@ -79,41 +149,77 @@ class StatisticsPage extends StatelessWidget {
     required double minY,
     required double maxY,
   }) {
+    double dataMin = data.map((e) => e.value).reduce((a, b) => a < b ? a : b);
+    double dataMax = data.map((e) => e.value).reduce((a, b) => a > b ? a : b);
+    
+    double displayMin = (dataMin < minY) ? dataMin - 1 : minY;
+    double displayMax = (dataMax > maxY) ? dataMax + 1 : maxY;
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header
             Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: color.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Icon(
-                    _getIconForTitle(title),
-                    color: color,
-                    size: 20,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                Row(
                   children: [
-                    Text(
-                      title,
-                      style: Theme.of(context).textTheme.titleMedium,
+                    Container(
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(
+                        color: color.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(
+                        _getIconForTitle(title),
+                        color: color,
+                        size: 20,
+                      ),
                     ),
-                    Text(
-                      subtitle,
-                      style: Theme.of(context).textTheme.bodySmall,
+                    const SizedBox(width: 12),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          title,
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                        Text(
+                          data.isNotEmpty 
+                            ? '${data.last.value.toStringAsFixed(1)} $unit' 
+                            : subtitle,
+                          style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                            color: color, fontWeight: FontWeight.bold
+                          ),
+                        ),
+                      ],
                     ),
                   ],
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.red.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.red.withValues(alpha: 0.5)),
+                  ),
+                  child: const Row(
+                    children: [
+                      Icon(Icons.circle, size: 8, color: Colors.red),
+                      SizedBox(width: 4),
+                      Text(
+                        'LIVE',
+                        style: TextStyle(
+                          fontSize: 10, 
+                          color: Colors.red, 
+                          fontWeight: FontWeight.bold
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -128,10 +234,10 @@ class StatisticsPage extends StatelessWidget {
                   gridData: FlGridData(
                     show: true,
                     drawVerticalLine: false,
-                    horizontalInterval: (maxY - minY) / 4,
+                    horizontalInterval: (displayMax - displayMin) / 5,
                     getDrawingHorizontalLine: (value) {
                       return FlLine(
-                        color: MangroveTheme.lightGrey,
+                        color: MangroveTheme.lightGrey.withValues(alpha: 0.5),
                         strokeWidth: 1,
                       );
                     },
@@ -141,10 +247,10 @@ class StatisticsPage extends StatelessWidget {
                       sideTitles: SideTitles(
                         showTitles: true,
                         reservedSize: 40,
-                        interval: (maxY - minY) / 4,
+                        interval: (displayMax - displayMin) / 4,
                         getTitlesWidget: (value, meta) {
                           return Text(
-                            '${value.toInt()}$unit',
+                            '${value.toStringAsFixed(1)}$unit',
                             style: const TextStyle(
                               fontSize: 10,
                               color: MangroveTheme.textHint,
@@ -156,21 +262,24 @@ class StatisticsPage extends StatelessWidget {
                     bottomTitles: AxisTitles(
                       sideTitles: SideTitles(
                         showTitles: true,
-                        reservedSize: 28,
-                        interval: 1,
+                        reservedSize: 22,
+                        interval: 5, // Show label every 5 index
                         getTitlesWidget: (value, meta) {
                           final index = value.toInt();
                           if (index >= 0 && index < data.length) {
-                            return Padding(
-                              padding: const EdgeInsets.only(top: 8),
-                              child: Text(
-                                _formatDayLabel(data[index].timestamp),
-                                style: const TextStyle(
-                                  fontSize: 10,
-                                  color: MangroveTheme.textHint,
-                                ),
-                              ),
-                            );
+                             // Only show time for some points to avoid clutter
+                             if (index % 5 == 0 || index == data.length - 1) {
+                               return Padding(
+                                  padding: const EdgeInsets.only(top: 8),
+                                  child: Text(
+                                    _formatTimeLabel(data[index].timestamp),
+                                    style: const TextStyle(
+                                      fontSize: 10,
+                                      color: MangroveTheme.textHint,
+                                    ),
+                                  ),
+                                );
+                             }
                           }
                           return const SizedBox.shrink();
                         },
@@ -185,9 +294,9 @@ class StatisticsPage extends StatelessWidget {
                   ),
                   borderData: FlBorderData(show: false),
                   minX: 0,
-                  maxX: data.length.toDouble() - 1,
-                  minY: minY,
-                  maxY: maxY,
+                  maxX: (data.length - 1).toDouble(), // Dynamic X axis
+                  minY: displayMin,
+                  maxY: displayMax,
                   lineBarsData: [
                     LineChartBarData(
                       spots: data.asMap().entries.map((entry) {
@@ -197,21 +306,11 @@ class StatisticsPage extends StatelessWidget {
                         );
                       }).toList(),
                       isCurved: true,
-                      curveSmoothness: 0.3,
+                      curveSmoothness: 0.2,
                       color: color,
                       barWidth: 3,
                       isStrokeCapRound: true,
-                      dotData: FlDotData(
-                        show: true,
-                        getDotPainter: (spot, percent, barData, index) {
-                          return FlDotCirclePainter(
-                            radius: 4,
-                            color: Colors.white,
-                            strokeWidth: 2,
-                            strokeColor: color,
-                          );
-                        },
-                      ),
+                      dotData: FlDotData(show: false), // Hide dots for cleaner look
                       belowBarData: BarAreaData(
                         show: true,
                         color: color.withValues(alpha: 0.1),
@@ -223,38 +322,21 @@ class StatisticsPage extends StatelessWidget {
                     touchTooltipData: LineTouchTooltipData(
                       getTooltipItems: (touchedSpots) {
                         return touchedSpots.map((spot) {
-                          return LineTooltipItem(
-                            '${spot.y.toStringAsFixed(1)}$unit',
-                            TextStyle(
-                              color: color,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          );
+                          final idx = spot.x.toInt();
+                          if (idx >= 0 && idx < data.length) {
+                             final point = data[idx];
+                             return LineTooltipItem(
+                                '${point.value.toStringAsFixed(2)}$unit\n${_formatFullTime(point.timestamp)}',
+                                TextStyle(color: color, fontWeight: FontWeight.bold),
+                             );
+                          }
+                          return null;
                         }).toList();
                       },
                     ),
                   ),
                 ),
               ),
-            ),
-            
-            const SizedBox(height: 8),
-            
-            // Legend
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(
-                  Icons.info_outline,
-                  size: 14,
-                  color: MangroveTheme.textHint,
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  'Last 7 days',
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
-              ],
             ),
           ],
         ),
@@ -275,8 +357,13 @@ class StatisticsPage extends StatelessWidget {
     }
   }
   
-  String _formatDayLabel(DateTime date) {
-    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-    return days[date.weekday - 1];
+  String _formatTimeLabel(DateTime date) {
+    // Format: HH:mm:ss
+    return '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}:${date.second.toString().padLeft(2, '0')}';
+  }
+
+  String _formatFullTime(DateTime date) {
+    return '${_formatTimeLabel(date)}';
   }
 }
+
