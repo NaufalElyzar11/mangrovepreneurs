@@ -13,6 +13,7 @@ class MockDataService {
         temperature: 32.5,
         humidity: 75.2,
         weight: 12.8,
+        batteryVoltage: 4.10,
         lastUpdated: DateTime.now().subtract(const Duration(minutes: 5)),
       ),
       Device(
@@ -21,6 +22,7 @@ class MockDataService {
         temperature: 31.8,
         humidity: 78.5,
         weight: 15.3,
+        batteryVoltage: 3.85,
         lastUpdated: DateTime.now().subtract(const Duration(minutes: 3)),
       ),
       Device(
@@ -29,6 +31,7 @@ class MockDataService {
         temperature: 55.1,
         humidity: 10.8,
         weight: 50.5,
+        batteryVoltage: 3.45,
         lastUpdated: DateTime.now().subtract(const Duration(minutes: 8)),
       ),
     ];

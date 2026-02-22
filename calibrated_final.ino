@@ -22,6 +22,7 @@
 #define SCL_PIN 22
 #define HX_DT   26
 #define HX_SCK  27
+#define BAT_PIN 34   // ADC pin untuk monitoring baterai (GPIO34)
 
 // ========= KALIBRASI =========
 #define CAL_FACTOR  -22734.2500   // <<< HASIL KALIBRASI (PER KG)
@@ -96,10 +97,15 @@ void loop() {
     float pres = bme.readPressure() / 100.0F; // hPa
     float weightKg = scale.get_units(10); // Average 10 readings
 
+    // Baca tegangan baterai
+    int adcValue = analogRead(BAT_PIN);
+    float batteryVoltage = (adcValue / 4095.0) * 3.3 * 2; // Voltage divider 1:1
+
     // Debug Serial
     Serial.print("Temp: "); Serial.print(temp); Serial.print(" C, ");
     Serial.print("Hum: "); Serial.print(hum); Serial.print(" %, ");
-    Serial.print("Weight: "); Serial.print(weightKg); Serial.println(" kg");
+    Serial.print("Weight: "); Serial.print(weightKg); Serial.print(" kg, ");
+    Serial.print("Battery: "); Serial.print(batteryVoltage); Serial.println(" V");
 
     // 2. Kirim ke Firebase
     if (Firebase.ready() && signupOK) {
@@ -111,6 +117,7 @@ void loop() {
       json.set("temperature", temp);
       json.set("humidity", hum);
       json.set("weight", weightKg);
+      json.set("batteryVoltage", batteryVoltage);
       // Kirim server timestamp (integer ms)
       json.set("lastUpdated/.sv", "timestamp");
 

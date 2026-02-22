@@ -6,6 +6,7 @@ class Device {
   final double temperature;
   final double humidity;
   final double weight;
+  final double batteryVoltage;
   final DateTime lastUpdated;
   
   const Device({
@@ -14,6 +15,7 @@ class Device {
     required this.temperature,
     required this.humidity,
     required this.weight,
+    this.batteryVoltage = 0.0,
     required this.lastUpdated,
   });
   
@@ -46,6 +48,7 @@ class Device {
       temperature: parseDouble(json['temperature']),
       humidity: parseDouble(json['humidity']),
       weight: parseDouble(json['weight']),
+      batteryVoltage: parseDouble(json['batteryVoltage']),
       lastUpdated: parseDate(json['lastUpdated']),
     );
   }
@@ -57,6 +60,7 @@ class Device {
       'temperature': temperature,
       'humidity': humidity,
       'weight': weight,
+      'batteryVoltage': batteryVoltage,
       'lastUpdated': lastUpdated.toIso8601String(),
     };
   }
@@ -67,6 +71,7 @@ class Device {
     double? temperature,
     double? humidity,
     double? weight,
+    double? batteryVoltage,
     DateTime? lastUpdated,
   }) {
     return Device(
@@ -75,6 +80,7 @@ class Device {
       temperature: temperature ?? this.temperature,
       humidity: humidity ?? this.humidity,
       weight: weight ?? this.weight,
+      batteryVoltage: batteryVoltage ?? this.batteryVoltage,
       lastUpdated: lastUpdated ?? this.lastUpdated,
     );
   }

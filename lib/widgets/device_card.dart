@@ -12,8 +12,32 @@ class DeviceCard extends StatelessWidget {
     this.onTap,
   });
 
+  double get _batteryPercent {
+    const minV = 3.3;
+    const maxV = 4.2;
+    final pct = ((device.batteryVoltage - minV) / (maxV - minV)).clamp(0.0, 1.0);
+    return pct;
+  }
+
+  Color get _batteryColor {
+    if (_batteryPercent > 0.5) return MangroveTheme.success;
+    if (_batteryPercent > 0.2) return MangroveTheme.warning;
+    return MangroveTheme.error;
+  }
+
+  IconData get _batteryIcon {
+    if (_batteryPercent > 0.75) return Icons.battery_full;
+    if (_batteryPercent > 0.5) return Icons.battery_5_bar;
+    if (_batteryPercent > 0.25) return Icons.battery_3_bar;
+    if (_batteryPercent > 0.1) return Icons.battery_1_bar;
+    return Icons.battery_alert;
+  }
+
   @override
   Widget build(BuildContext context) {
+    final batteryPct = (_batteryPercent * 100).toStringAsFixed(0);
+    final voltageStr = device.batteryVoltage.toStringAsFixed(2);
+
     return Card(
       child: InkWell(
         onTap: onTap,
@@ -56,9 +80,15 @@ class DeviceCard extends StatelessWidget {
                       ),
                     ],
                   ),
-                  const Icon(
-                    Icons.chevron_right,
-                    color: MangroveTheme.textHint,
+                  Row(
+                    children: [
+                      _buildBatteryBadge(context, batteryPct, voltageStr),
+                      const SizedBox(width: 8),
+                      const Icon(
+                        Icons.chevron_right,
+                        color: MangroveTheme.textHint,
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -96,6 +126,45 @@ class DeviceCard extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildBatteryBadge(BuildContext context, String pct, String voltage) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: _batteryColor.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: _batteryColor.withValues(alpha: 0.4), width: 1),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(_batteryIcon, color: _batteryColor, size: 16),
+          const SizedBox(width: 4),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                '$pct%',
+                style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                  color: _batteryColor,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Text(
+                '${voltage}V',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: _batteryColor.withValues(alpha: 0.8),
+                  fontSize: 10,
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

@@ -1,43 +1,93 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
 import '../data/models/device.dart';
 import '../data/models/calibration_settings.dart';
+import '../data/services/firebase_service.dart';
 import '../core/theme/mangrove_theme.dart';
 
-class DeviceDetailPage extends StatelessWidget {
+class DeviceDetailPage extends StatefulWidget {
   final Device device;
-  
+
   const DeviceDetailPage({
     super.key,
     required this.device,
   });
 
   @override
+  State<DeviceDetailPage> createState() => _DeviceDetailPageState();
+}
+
+class _DeviceDetailPageState extends State<DeviceDetailPage> {
+  final FirebaseService _firebaseService = FirebaseService();
+  StreamSubscription<List<Device>>? _subscription;
+  late Device _device;
+
+  @override
+  void initState() {
+    super.initState();
+    _device = widget.device;
+    // Subscribe to live Firebase updates and filter for this device's id
+    _subscription = _firebaseService.getDevicesStream().listen((devices) {
+      final updated = devices.where((d) => d.id == _device.id).firstOrNull;
+      if (updated != null && mounted) {
+        setState(() => _device = updated);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _subscription?.cancel();
+    super.dispose();
+  }
+
+  // ──────────────────────── Battery helpers ────────────────────────
+  double get _batteryPercent {
+    const minV = 3.3;
+    const maxV = 4.2;
+    return ((_device.batteryVoltage - minV) / (maxV - minV)).clamp(0.0, 1.0);
+  }
+
+  Color get _batteryColor {
+    if (_batteryPercent > 0.5) return MangroveTheme.success;
+    if (_batteryPercent > 0.2) return MangroveTheme.warning;
+    return MangroveTheme.error;
+  }
+
+  IconData get _batteryIcon {
+    if (_batteryPercent > 0.75) return Icons.battery_full;
+    if (_batteryPercent > 0.5) return Icons.battery_5_bar;
+    if (_batteryPercent > 0.25) return Icons.battery_3_bar;
+    if (_batteryPercent > 0.1) return Icons.battery_1_bar;
+    return Icons.battery_alert;
+  }
+
+  // ──────────────────────── Build ────────────────────────
+  @override
   Widget build(BuildContext context) {
     final calibration = CalibrationService().settings;
-    final double weightPercentage = calibration.getHarvestProgress(device.weight);
-    final bool isReadyToHarvest = calibration.isReadyForHarvest(device.weight);
-    
+    final double weightPercentage =
+        calibration.getHarvestProgress(_device.weight);
+    final bool isReadyToHarvest =
+        calibration.isReadyForHarvest(_device.weight);
+
     return Scaffold(
       backgroundColor: MangroveTheme.offWhite,
       body: SafeArea(
         child: Column(
           children: [
             _buildAppBar(context),
-            
             Expanded(
               child: SingleChildScrollView(
                 physics: const BouncingScrollPhysics(),
                 child: Column(
                   children: [
                     _buildMetaInfo(context),
-                    
-                    _buildWeightCard(context, weightPercentage, calibration.harvestWeight, isReadyToHarvest),
-                    
+                    _buildWeightCard(context, weightPercentage,
+                        calibration.harvestWeight, isReadyToHarvest),
                     _buildEnvironmentGrid(context, calibration),
-                    
                     _buildDeviceStatus(context),
-                    
                     const SizedBox(height: 24),
                   ],
                 ),
@@ -48,7 +98,7 @@ class DeviceDetailPage extends StatelessWidget {
       ),
     );
   }
-  
+
   Widget _buildAppBar(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
@@ -69,12 +119,11 @@ class DeviceDetailPage extends StatelessWidget {
             icon: const Icon(Icons.arrow_back),
             color: MangroveTheme.textPrimary,
           ),
-          
           Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                device.name,
+                _device.name,
                 style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -114,10 +163,8 @@ class DeviceDetailPage extends StatelessWidget {
               ),
             ],
           ),
-          
           IconButton(
-            onPressed: () {
-            },
+            onPressed: () {},
             icon: const Icon(Icons.settings_outlined),
             color: MangroveTheme.textPrimary,
           ),
@@ -125,23 +172,15 @@ class DeviceDetailPage extends StatelessWidget {
       ),
     );
   }
-  
+
   Widget _buildMetaInfo(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(24, 20, 24, 8),
       child: Column(
         children: [
-          Text(
-            'Mangrove Edge • Zone A',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: MangroveTheme.textSecondary,
-            ),
-          ),
           const SizedBox(height: 4),
           Text(
-            'Last updated ${_formatTime(device.lastUpdated)}',
+            'Last updated ${_formatTime(_device.lastUpdated)}',
             style: TextStyle(
               fontSize: 12,
               color: MangroveTheme.textHint,
@@ -151,10 +190,11 @@ class DeviceDetailPage extends StatelessWidget {
       ),
     );
   }
-  
-  Widget _buildWeightCard(BuildContext context, double percentage, double target, bool isReadyToHarvest) {
+
+  Widget _buildWeightCard(BuildContext context, double percentage,
+      double target, bool isReadyToHarvest) {
     const String weightChange = '+0.1kg';
-    
+
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Container(
@@ -169,7 +209,7 @@ class DeviceDetailPage extends StatelessWidget {
             ),
           ],
           border: Border.all(
-            color: isReadyToHarvest 
+            color: isReadyToHarvest
                 ? MangroveTheme.primaryGreen.withValues(alpha: 0.5)
                 : Colors.black.withValues(alpha: 0.05),
             width: isReadyToHarvest ? 2 : 1,
@@ -212,9 +252,11 @@ class DeviceDetailPage extends StatelessWidget {
                   ],
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                   decoration: BoxDecoration(
-                    color: MangroveTheme.primaryGreen.withValues(alpha: 0.12),
+                    color:
+                        MangroveTheme.primaryGreen.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Row(
@@ -239,17 +281,15 @@ class DeviceDetailPage extends StatelessWidget {
                 ),
               ],
             ),
-            
             const SizedBox(height: 24),
-            
             SizedBox(
               width: 180,
               height: 180,
               child: CustomPaint(
                 painter: _CircularGaugePainter(
                   percentage: percentage,
-                  progressColor: isReadyToHarvest 
-                      ? MangroveTheme.primaryGreen 
+                  progressColor: isReadyToHarvest
+                      ? MangroveTheme.primaryGreen
                       : MangroveTheme.oliveGreen,
                   backgroundColor: MangroveTheme.lightGrey,
                 ),
@@ -258,7 +298,7 @@ class DeviceDetailPage extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        device.weight.toStringAsFixed(1),
+                        _device.weight.toStringAsFixed(1),
                         style: const TextStyle(
                           fontSize: 40,
                           fontWeight: FontWeight.w800,
@@ -279,13 +319,12 @@ class DeviceDetailPage extends StatelessWidget {
                 ),
               ),
             ),
-            
             const SizedBox(height: 16),
-            
             if (isReadyToHarvest)
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                padding:
+                    const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
@@ -318,7 +357,6 @@ class DeviceDetailPage extends StatelessWidget {
                   ],
                 ),
               ),
-            
             if (!isReadyToHarvest)
               Padding(
                 padding: const EdgeInsets.only(top: 8),
@@ -330,9 +368,7 @@ class DeviceDetailPage extends StatelessWidget {
                   ),
                 ),
               ),
-            
             const SizedBox(height: 16),
-            
             Container(
               padding: const EdgeInsets.only(top: 16),
               decoration: BoxDecoration(
@@ -399,11 +435,13 @@ class DeviceDetailPage extends StatelessWidget {
       ),
     );
   }
-  
-  Widget _buildEnvironmentGrid(BuildContext context, CalibrationSettings calibration) {
-    final tempStatus = calibration.getTemperatureStatus(device.temperature);
-    final humStatus = calibration.getHumidityStatus(device.humidity);
-    
+
+  Widget _buildEnvironmentGrid(
+      BuildContext context, CalibrationSettings calibration) {
+    final tempStatus =
+        calibration.getTemperatureStatus(_device.temperature);
+    final humStatus = calibration.getHumidityStatus(_device.humidity);
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
@@ -414,11 +452,12 @@ class DeviceDetailPage extends StatelessWidget {
               iconBgColor: _getTempIconBgColor(tempStatus),
               iconColor: _getTempIconColor(tempStatus),
               label: 'Temperature',
-              value: device.temperature.toStringAsFixed(1),
+              value: _device.temperature.toStringAsFixed(1),
               unit: '°C',
               status: tempStatus,
               statusLabel: _getTempStatusLabel(tempStatus),
-              thresholdInfo: '${calibration.temperatureMin.toInt()}° - ${calibration.temperatureMax.toInt()}°C',
+              thresholdInfo:
+                  '${calibration.temperatureMin.toInt()}° - ${calibration.temperatureMax.toInt()}°C',
             ),
           ),
           const SizedBox(width: 12),
@@ -428,66 +467,85 @@ class DeviceDetailPage extends StatelessWidget {
               iconBgColor: _getHumIconBgColor(humStatus),
               iconColor: _getHumIconColor(humStatus),
               label: 'Humidity',
-              value: device.humidity.toStringAsFixed(0),
+              value: _device.humidity.toStringAsFixed(0),
               unit: '%',
               status: humStatus,
               statusLabel: _getHumStatusLabel(humStatus),
-              thresholdInfo: '${calibration.humidityMin.toInt()}% - ${calibration.humidityMax.toInt()}%',
+              thresholdInfo:
+                  '${calibration.humidityMin.toInt()}% - ${calibration.humidityMax.toInt()}%',
             ),
           ),
         ],
       ),
     );
   }
-  
+
   Color _getTempIconBgColor(String status) {
     switch (status) {
-      case 'high': return Colors.red.shade50;
-      case 'low': return Colors.blue.shade50;
-      default: return Colors.orange.shade50;
+      case 'high':
+        return Colors.red.shade50;
+      case 'low':
+        return Colors.blue.shade50;
+      default:
+        return Colors.orange.shade50;
     }
   }
-  
+
   Color _getTempIconColor(String status) {
     switch (status) {
-      case 'high': return Colors.red.shade500;
-      case 'low': return Colors.blue.shade500;
-      default: return Colors.orange.shade500;
+      case 'high':
+        return Colors.red.shade500;
+      case 'low':
+        return Colors.blue.shade500;
+      default:
+        return Colors.orange.shade500;
     }
   }
-  
+
   String _getTempStatusLabel(String status) {
     switch (status) {
-      case 'high': return 'Terlalu Panas!';
-      case 'low': return 'Terlalu Dingin!';
-      default: return 'Normal';
+      case 'high':
+        return 'Terlalu Panas!';
+      case 'low':
+        return 'Terlalu Dingin!';
+      default:
+        return 'Normal';
     }
   }
-  
+
   Color _getHumIconBgColor(String status) {
     switch (status) {
-      case 'high': return Colors.blue.shade50;
-      case 'low': return Colors.amber.shade50;
-      default: return Colors.green.shade50;
+      case 'high':
+        return Colors.blue.shade50;
+      case 'low':
+        return Colors.amber.shade50;
+      default:
+        return Colors.green.shade50;
     }
   }
-  
+
   Color _getHumIconColor(String status) {
     switch (status) {
-      case 'high': return Colors.blue.shade600;
-      case 'low': return Colors.amber.shade600;
-      default: return Colors.green.shade500;
+      case 'high':
+        return Colors.blue.shade600;
+      case 'low':
+        return Colors.amber.shade600;
+      default:
+        return Colors.green.shade500;
     }
   }
-  
+
   String _getHumStatusLabel(String status) {
     switch (status) {
-      case 'high': return 'Terlalu Lembap!';
-      case 'low': return 'Terlalu Kering!';
-      default: return 'Normal';
+      case 'high':
+        return 'Terlalu Lembap!';
+      case 'low':
+        return 'Terlalu Kering!';
+      default:
+        return 'Normal';
     }
   }
-  
+
   Widget _buildMetricCard({
     required IconData icon,
     required Color iconBgColor,
@@ -500,7 +558,7 @@ class DeviceDetailPage extends StatelessWidget {
     required String thresholdInfo,
   }) {
     final isNormal = status == 'normal';
-    
+
     return Container(
       height: 160,
       decoration: BoxDecoration(
@@ -514,7 +572,7 @@ class DeviceDetailPage extends StatelessWidget {
           ),
         ],
         border: Border.all(
-          color: isNormal 
+          color: isNormal
               ? Colors.black.withValues(alpha: 0.05)
               : iconColor.withValues(alpha: 0.4),
           width: isNormal ? 1 : 2,
@@ -538,9 +596,10 @@ class DeviceDetailPage extends StatelessWidget {
                 child: Icon(icon, size: 20, color: iconColor),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
                 decoration: BoxDecoration(
-                  color: isNormal 
+                  color: isNormal
                       ? MangroveTheme.success.withValues(alpha: 0.15)
                       : iconColor.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(6),
@@ -577,7 +636,8 @@ class DeviceDetailPage extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 26,
                       fontWeight: FontWeight.bold,
-                      color: isNormal ? MangroveTheme.textPrimary : iconColor,
+                      color:
+                          isNormal ? MangroveTheme.textPrimary : iconColor,
                     ),
                   ),
                   const SizedBox(width: 2),
@@ -603,8 +663,11 @@ class DeviceDetailPage extends StatelessWidget {
       ),
     );
   }
-  
+
   Widget _buildDeviceStatus(BuildContext context) {
+    final batteryPct = (_batteryPercent * 100).toStringAsFixed(0);
+    final voltageStr = _device.batteryVoltage.toStringAsFixed(2);
+
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Container(
@@ -631,80 +694,82 @@ class DeviceDetailPage extends StatelessWidget {
                 ),
               ),
             ),
-            Row(
-              children: [
-                Expanded(
-                  child: _buildStatusItem(
-                    icon: Icons.battery_5_bar,
-                    iconBgColor: Colors.green.shade50,
-                    iconColor: Colors.green.shade600,
-                    label: 'Battery',
-                    value: '85%',
-                  ),
-                ),
-                Expanded(
-                  child: _buildStatusItem(
-                    icon: Icons.signal_cellular_alt,
-                    iconBgColor: Colors.grey.shade100,
-                    iconColor: Colors.grey.shade700,
-                    label: 'Signal',
-                    value: 'Strong',
-                  ),
-                ),
-              ],
-            ),
+            _buildBatteryStatus(context, batteryPct, voltageStr),
           ],
         ),
       ),
     );
   }
-  
-  Widget _buildStatusItem({
-    required IconData icon,
-    required Color iconBgColor,
-    required Color iconColor,
-    required String label,
-    required String value,
-  }) {
+
+  Widget _buildBatteryStatus(
+      BuildContext context, String pct, String voltage) {
     return Row(
       children: [
         Container(
           padding: const EdgeInsets.all(6),
           decoration: BoxDecoration(
-            color: iconBgColor,
+            color: _batteryColor.withValues(alpha: 0.12),
             borderRadius: BorderRadius.circular(8),
           ),
-          child: Icon(icon, size: 18, color: iconColor),
+          child: Icon(_batteryIcon, size: 18, color: _batteryColor),
         ),
         const SizedBox(width: 10),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              label,
+              'Battery',
               style: TextStyle(
                 fontSize: 11,
                 color: MangroveTheme.textHint,
               ),
             ),
-            Text(
-              value,
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-                color: MangroveTheme.textPrimary,
-              ),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.baseline,
+              textBaseline: TextBaseline.alphabetic,
+              children: [
+                Text(
+                  '$pct%',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: _batteryColor,
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  '${voltage}V',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: MangroveTheme.textHint,
+                  ),
+                ),
+              ],
             ),
           ],
+        ),
+        const Spacer(),
+        // Mini progress bar
+        SizedBox(
+          width: 120,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: LinearProgressIndicator(
+              value: _batteryPercent,
+              minHeight: 8,
+              backgroundColor: MangroveTheme.lightGrey,
+              valueColor: AlwaysStoppedAnimation<Color>(_batteryColor),
+            ),
+          ),
         ),
       ],
     );
   }
-  
+
   String _formatTime(DateTime dateTime) {
     final now = DateTime.now();
     final difference = now.difference(dateTime);
-    
+
     if (difference.inMinutes < 1) {
       return 'just now';
     } else if (difference.inMinutes < 60) {
@@ -721,51 +786,51 @@ class _CircularGaugePainter extends CustomPainter {
   final double percentage;
   final Color progressColor;
   final Color backgroundColor;
-  
+
   _CircularGaugePainter({
     required this.percentage,
     required this.progressColor,
     required this.backgroundColor,
   });
-  
+
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
     final radius = math.min(size.width, size.height) / 2 - 10;
     const strokeWidth = 12.0;
-    
+
     final bgPaint = Paint()
       ..color = backgroundColor
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth
       ..strokeCap = StrokeCap.round;
-    
+
     canvas.drawCircle(center, radius, bgPaint);
-    
+
     final progressPaint = Paint()
       ..color = progressColor
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth
       ..strokeCap = StrokeCap.round;
-    
+
     final glowPaint = Paint()
       ..color = progressColor.withValues(alpha: 0.3)
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth + 6
       ..strokeCap = StrokeCap.round
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
-    
+
     final rect = Rect.fromCircle(center: center, radius: radius);
     const startAngle = -math.pi / 2;
     final sweepAngle = 2 * math.pi * percentage;
-    
+
     canvas.drawArc(rect, startAngle, sweepAngle, false, glowPaint);
     canvas.drawArc(rect, startAngle, sweepAngle, false, progressPaint);
   }
-  
+
   @override
   bool shouldRepaint(covariant _CircularGaugePainter oldDelegate) {
     return oldDelegate.percentage != percentage ||
-           oldDelegate.progressColor != progressColor;
+        oldDelegate.progressColor != progressColor;
   }
 }
