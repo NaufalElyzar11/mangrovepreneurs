@@ -98,7 +98,7 @@ class NotificationService {
           .resolvePlatformSpecificImplementation<
               AndroidFlutterLocalNotificationsPlugin>();
       final granted = await androidImpl?.requestNotificationsPermission();
-      _permissionGranted = granted ?? false;
+      _permissionGranted = granted ?? true; // null = older Android (always allowed)
       if (!_permissionGranted) return;
     }
 

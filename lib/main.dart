@@ -6,7 +6,6 @@ import 'data/services/notification_service.dart';
 import 'data/services/background_service.dart';
 import 'pages/dashboard_page.dart';
 import 'pages/statistics_page.dart';
-import 'pages/settings_page.dart';
 import 'pages/profile_page.dart';
 
 void main() async {
@@ -45,8 +44,7 @@ class _MainScreenState extends State<MainScreen> {
   
   final List<Widget> _pages = const [
     DashboardPage(),
-    StatisticsPage(),
-    SettingsPage(),
+    StatisticsPage(), // No device param means it shows all devices aggregate
     ProfilePage(),
   ];
 
@@ -84,11 +82,6 @@ class _MainScreenState extends State<MainScreen> {
               icon: Icon(Icons.bar_chart_outlined),
               activeIcon: Icon(Icons.bar_chart),
               label: 'Statistics',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.settings_outlined),
-              activeIcon: Icon(Icons.settings),
-              label: 'Settings',
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.person_outline),

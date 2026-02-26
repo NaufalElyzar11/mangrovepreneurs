@@ -25,7 +25,7 @@
 #define BAT_PIN 34   // ADC pin untuk monitoring baterai (GPIO34)
 
 // ========= KALIBRASI =========
-#define CAL_FACTOR  -22734.2500   // <<< HASIL KALIBRASI (PER KG)
+#define CAL_FACTOR  22734.2500   // <<< HASIL KALIBRASI (PER KG)
 
 Adafruit_BME280 bme;
 HX711 scale;

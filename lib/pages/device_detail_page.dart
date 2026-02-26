@@ -5,6 +5,8 @@ import '../data/models/device.dart';
 import '../data/models/calibration_settings.dart';
 import '../data/services/firebase_service.dart';
 import '../core/theme/mangrove_theme.dart';
+import 'settings_page.dart';
+import 'statistics_page.dart';
 
 class DeviceDetailPage extends StatefulWidget {
   final Device device;
@@ -44,7 +46,7 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
 
   // ──────────────────────── Battery helpers ────────────────────────
   double get _batteryPercent {
-    const minV = 3.3;
+    const minV = 3.0;
     const maxV = 4.2;
     return ((_device.batteryVoltage - minV) / (maxV - minV)).clamp(0.0, 1.0);
   }
@@ -66,7 +68,7 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
   // ──────────────────────── Build ────────────────────────
   @override
   Widget build(BuildContext context) {
-    final calibration = CalibrationService().settings;
+    final calibration = CalibrationService().getSettings(_device.id);
     final double weightPercentage =
         calibration.getHarvestProgress(_device.weight);
     final bool isReadyToHarvest =
@@ -163,10 +165,38 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
               ),
             ],
           ),
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(Icons.settings_outlined),
-            color: MangroveTheme.textPrimary,
+          Row(
+            children: [
+              IconButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => StatisticsPage(device: _device),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.bar_chart),
+                color: MangroveTheme.primaryGreenDark,
+                tooltip: 'Live Data',
+              ),
+              IconButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => SettingsPage(device: _device),
+                    ),
+                  ).then((_) {
+                    // Refresh view if settings were modified
+                    if (mounted) setState(() {});
+                  });
+                },
+                icon: const Icon(Icons.settings_outlined),
+                color: MangroveTheme.textPrimary,
+                tooltip: 'Device Settings',
+              ),
+            ],
           ),
         ],
       ),

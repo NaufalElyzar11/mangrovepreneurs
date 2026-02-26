@@ -57,15 +57,25 @@ class CalibrationService {
   factory CalibrationService() => _instance;
   CalibrationService._internal();
   
-  CalibrationSettings _settings = const CalibrationSettings();
+  // Store settings per device ID
+  final Map<String, CalibrationSettings> _settings = {};
   
-  CalibrationSettings get settings => _settings;
-  
-  void updateSettings(CalibrationSettings newSettings) {
-    _settings = newSettings;
+  CalibrationSettings getSettings(String deviceId) {
+    if (!_settings.containsKey(deviceId)) {
+      _settings[deviceId] = const CalibrationSettings();
+    }
+    return _settings[deviceId]!;
   }
   
-  void resetToDefaults() {
-    _settings = const CalibrationSettings();
+  void updateSettings(String deviceId, CalibrationSettings newSettings) {
+    _settings[deviceId] = newSettings;
   }
+  
+  void resetToDefaults(String deviceId) {
+    _settings[deviceId] = const CalibrationSettings();
+  }
+  
+  // Keep this for backwards compatibility where deviceId isn't available yet,
+  // or default to a "default" string.
+  CalibrationSettings get settings => getSettings("default");
 }

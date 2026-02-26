@@ -2,8 +2,15 @@ import 'package:flutter/material.dart';
 import '../core/theme/mangrove_theme.dart';
 import '../data/models/calibration_settings.dart';
 
+import '../data/models/device.dart';
+
 class SettingsPage extends StatefulWidget {
-  const SettingsPage({super.key});
+  final Device device;
+
+  const SettingsPage({
+    super.key,
+    required this.device,
+  });
 
   @override
   State<SettingsPage> createState() => _SettingsPageState();
@@ -24,7 +31,7 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   void initState() {
     super.initState();
-    final settings = _calibrationService.settings;
+    final settings = _calibrationService.getSettings(widget.device.id);
     _tempMinController = TextEditingController(text: settings.temperatureMin.toString());
     _tempMaxController = TextEditingController(text: settings.temperatureMax.toString());
     _humidityMinController = TextEditingController(text: settings.humidityMin.toString());
@@ -372,7 +379,7 @@ class _SettingsPageState extends State<SettingsPage> {
         harvestWeight: double.parse(_harvestWeightController.text),
       );
       
-      _calibrationService.updateSettings(newSettings);
+      _calibrationService.updateSettings(widget.device.id, newSettings);
       
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -401,8 +408,8 @@ class _SettingsPageState extends State<SettingsPage> {
   }
   
   void _resetToDefaults() {
-    _calibrationService.resetToDefaults();
-    final settings = _calibrationService.settings;
+    _calibrationService.resetToDefaults(widget.device.id);
+    final settings = _calibrationService.getSettings(widget.device.id);
     
     setState(() {
       _tempMinController.text = settings.temperatureMin.toString();

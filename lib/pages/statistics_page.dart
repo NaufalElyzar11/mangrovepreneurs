@@ -6,7 +6,12 @@ import '../data/models/device.dart';
 import '../core/theme/mangrove_theme.dart';
 
 class StatisticsPage extends StatefulWidget {
-  const StatisticsPage({super.key});
+  final Device? device;
+
+  const StatisticsPage({
+    super.key,
+    this.device,
+  });
 
   @override
   State<StatisticsPage> createState() => _StatisticsPageState();
@@ -29,13 +34,34 @@ class _StatisticsPageState extends State<StatisticsPage> {
   void _startListening() {
     _subscription = _firebaseService.getDevicesStream().listen((devices) {
       if (devices.isNotEmpty && mounted) {
-        final device = devices.first;
         final now = DateTime.now();
+        double temp = 0;
+        double hum = 0;
+        double weight = 0;
+
+        if (widget.device != null) {
+          final device = devices.firstWhere(
+            (d) => d.id == widget.device!.id,
+            orElse: () => devices.first,
+          );
+          temp = device.temperature;
+          hum = device.humidity;
+          weight = device.weight;
+        } else {
+          for (var d in devices) {
+            temp += d.temperature;
+            hum += d.humidity;
+            weight += d.weight;
+          }
+          temp /= devices.length;
+          hum /= devices.length;
+          weight /= devices.length; // Average weight per hive could also be useful, or sum. 
+        }
 
         setState(() {
-          _tempHistory.add(SensorDataPoint(timestamp: now, value: device.temperature));
-          _humHistory.add(SensorDataPoint(timestamp: now, value: device.humidity));
-          _weightHistory.add(SensorDataPoint(timestamp: now, value: device.weight));
+          _tempHistory.add(SensorDataPoint(timestamp: now, value: temp));
+          _humHistory.add(SensorDataPoint(timestamp: now, value: hum));
+          _weightHistory.add(SensorDataPoint(timestamp: now, value: weight));
           if (_tempHistory.length > 30) _tempHistory.removeAt(0);
           if (_humHistory.length > 30) _humHistory.removeAt(0);
           if (_weightHistory.length > 30) _weightHistory.removeAt(0);
@@ -99,7 +125,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
           _buildChartCard(
             context,
             title: 'Temperature',
-            subtitle: 'Live Sensor Data',
+            subtitle: widget.device == null ? 'Average Sensor Data' : 'Live Sensor Data',
             unit: '°C',
             data: _tempHistory,
             color: MangroveTheme.warning,
@@ -112,7 +138,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
           _buildChartCard(
             context,
             title: 'Humidity',
-            subtitle: 'Live Sensor Data',
+            subtitle: widget.device == null ? 'Average Sensor Data' : 'Live Sensor Data',
             unit: '%',
             data: _humHistory,
             color: MangroveTheme.primaryGreen,
@@ -125,7 +151,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
           _buildChartCard(
             context,
             title: 'Weight',
-            subtitle: 'Live Load Cell Data',
+            subtitle: widget.device == null ? 'Average Live Load Cell Data' : 'Live Load Cell Data',
             unit: 'kg',
             data: _weightHistory,
             color: MangroveTheme.mutedBrown,
@@ -233,7 +259,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
                   gridData: FlGridData(
                     show: true,
                     drawVerticalLine: false,
-                    horizontalInterval: (displayMax - displayMin) / 5,
+                    horizontalInterval: (displayMax - displayMin) / 4,
                     getDrawingHorizontalLine: (value) {
                       return FlLine(
                         color: MangroveTheme.lightGrey.withValues(alpha: 0.5),
@@ -245,14 +271,21 @@ class _StatisticsPageState extends State<StatisticsPage> {
                     leftTitles: AxisTitles(
                       sideTitles: SideTitles(
                         showTitles: true,
-                        reservedSize: 40,
+                        reservedSize: 48,
                         interval: (displayMax - displayMin) / 4,
                         getTitlesWidget: (value, meta) {
-                          return Text(
-                            '${value.toStringAsFixed(1)}$unit',
-                            style: const TextStyle(
-                              fontSize: 10,
-                              color: MangroveTheme.textHint,
+                          // Hide labels that are at the very edge to avoid overlap
+                          if (value == meta.max || value == meta.min) {
+                            return const SizedBox.shrink();
+                          }
+                          return Padding(
+                            padding: const EdgeInsets.only(right: 4),
+                            child: Text(
+                              '${value.toStringAsFixed(1)}$unit',
+                              style: const TextStyle(
+                                fontSize: 10,
+                                color: MangroveTheme.textHint,
+                              ),
                             ),
                           );
                         },
