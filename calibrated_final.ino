@@ -25,7 +25,7 @@
 #define BAT_PIN 34   // ADC pin untuk monitoring baterai (GPIO34)
 
 // ========= KALIBRASI =========
-#define CAL_FACTOR  22734.2500   // <<< HASIL KALIBRASI (PER KG)
+#define CAL_FACTOR  22734.2500   // <<< KEMBALIKAN KE POSITIF
 
 Adafruit_BME280 bme;
 HX711 scale;
@@ -80,6 +80,7 @@ void setup() {
 
   // ===== HX711 =====
   scale.begin(HX_DT, HX_SCK);
+  delay(500); // Tunggu HX711 stabil sebelum melakukan tare
   scale.set_scale(CAL_FACTOR);
   scale.tare();
 
@@ -95,7 +96,15 @@ void loop() {
     float temp = bme.readTemperature();
     float hum = bme.readHumidity();
     float pres = bme.readPressure() / 100.0F; // hPa
-    float weightKg = scale.get_units(10); // Average 10 readings
+    
+    // Baca berat dan paksa nilainya dibalik (dikali -1) jika nilainya minus akibat kabel terbalik
+    float weightKg = scale.get_units(10); 
+    weightKg = weightKg * -1.0; 
+
+    // Filter sensor agar tidak menampilkan nilai minus saat kosong (fluktuasi)
+    if (weightKg < 0.05) {
+      weightKg = 0.0;
+    }
 
     // Baca tegangan baterai
     int adcValue = analogRead(BAT_PIN);

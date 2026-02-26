@@ -60,18 +60,6 @@ class _DashboardPageState extends State<DashboardPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Mangrovepreneurs'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.cloud_upload_outlined),
-            tooltip: 'Sync Test Data',
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Syncing test data to Firebase...')),
-              );
-              _firebaseService.seedInitialData();
-            },
-          ),
-        ],
       ),
       body: _buildBody(context),
     );

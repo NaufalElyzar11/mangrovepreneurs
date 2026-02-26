@@ -47,7 +47,7 @@ class Device {
       name: json['name']?.toString() ?? 'Unknown Device',
       temperature: parseDouble(json['temperature']),
       humidity: parseDouble(json['humidity']),
-      weight: parseDouble(json['weight']),
+      weight: parseDouble(json['weight']).abs(),
       batteryVoltage: parseDouble(json['batteryVoltage']),
       lastUpdated: parseDate(json['lastUpdated']),
     );
