@@ -13,7 +13,7 @@ class DeviceCard extends StatelessWidget {
   });
 
   double get _batteryPercent {
-    const minV = 3.3;
+    const minV = 3.0;
     const maxV = 4.2;
     final pct = ((device.batteryVoltage - minV) / (maxV - minV)).clamp(0.0, 1.0);
     return pct;
