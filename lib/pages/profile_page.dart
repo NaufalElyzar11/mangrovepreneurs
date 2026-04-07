@@ -31,18 +31,21 @@ class ProfilePage extends StatelessWidget {
           const TeamMemberCard(
             name: 'M. Baihaqi',
             role: 'Team Leader',
+            imagePath: 'assets/images/ubay.jpeg',
             avatarIcon: Icons.nature_people_outlined,
             avatarColor: MangroveTheme.oliveGreen,
           ),
           const TeamMemberCard(
-            name: 'Rezky Amalia',
+            name: 'Luthfi Nor Anshori',
             role: 'Bee Specialist',
+            imagePath: 'assets/images/upi.jpeg',
             avatarIcon: Icons.pest_control_outlined,
             avatarColor: MangroveTheme.mutedBrown,
           ),
           const TeamMemberCard(
-            name: 'Muhammad Rizki',
+            name: 'Rezky Amalia',
             role: 'Field Researcher',
+            imagePath: 'assets/images/ka.jpeg',
             avatarIcon: Icons.explore_outlined,
             avatarColor: MangroveTheme.primaryGreen,
           ),
