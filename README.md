@@ -69,6 +69,42 @@ lib/
 
 ---
 
+## 📱 Device Requirements
+
+### Android
+
+| Spesifikasi | Minimum |
+|---|---|
+| OS Version | Android 5.0 (Lollipop) — API level 21 |
+| RAM | 2 GB |
+| Storage | ~50 MB (app) + ruang cache Firebase |
+| Koneksi | Internet aktif (WiFi / Mobile Data) |
+| Fitur wajib | Izin notifikasi, izin background service |
+
+> **Catatan:** Untuk fitur background service & notifikasi real-time, disarankan menggunakan **Android 8.0+ (API 26)** agar sistem tidak membatasi background process.
+
+### iOS
+
+| Spesifikasi | Minimum |
+|---|---|
+| OS Version | iOS 13.0 |
+| RAM | 2 GB |
+| Storage | ~50 MB |
+| Koneksi | Internet aktif (WiFi / Mobile Data) |
+| Fitur wajib | Izin notifikasi |
+
+### Sensor Hardware (IoT Node)
+
+| Komponen | Keterangan |
+|---|---|
+| Mikrokontroler | ESP32 / ESP8266 (dengan WiFi) |
+| Sensor suhu & kelembaban | DHT22 / SHT31 |
+| Sensor berat | Load Cell + HX711 |
+| Power supply | Baterai LiPo 3.7V (3.0–4.2V range) |
+| Koneksi | WiFi ke Firebase Realtime Database |
+
+---
+
 ## 🚀 Getting Started
 
 ### Prerequisites
